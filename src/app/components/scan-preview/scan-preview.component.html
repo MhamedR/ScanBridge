@@ -1,0 +1,33 @@
+<mat-card class="scan-preview-card h-full flex flex-col">
+  <mat-card-header class="flex items-center mb-4">
+    <mat-icon class="mr-2 text-purple-600">image</mat-icon>
+    <mat-card-title class="text-xl font-semibold">Last Scan</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="flex-1 flex flex-col items-center justify-center">
+    @if (!lastScan()) {
+      <div class="text-center py-8 text-gray-500">
+        <mat-icon class="text-6xl mb-4 opacity-50">insert_photo</mat-icon>
+        <p>No scans yet</p>
+        <p class="text-sm mt-2">Scan a document to see preview here</p>
+      </div>
+    } @else {
+      <div class="flex flex-col items-center w-full">
+        <div class="scan-thumbnail mb-4 rounded-lg shadow-lg overflow-hidden bg-gray-100">
+          <div class="w-full h-64 flex items-center justify-center">
+            <mat-icon class="text-6xl text-gray-400">description</mat-icon>
+          </div>
+        </div>
+        <div class="text-center w-full">
+          <p class="font-medium text-gray-900 mb-1 truncate px-4">{{ lastScan()!.fileName }}</p>
+          <p class="text-xs text-gray-500 mb-4">Saved to Desktop</p>
+          <button mat-raised-button color="primary" (click)="openFolder()" class="w-full sm:w-auto">
+            <mat-icon class="mr-1">folder_open</mat-icon>
+            Open Folder
+          </button>
+        </div>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
+

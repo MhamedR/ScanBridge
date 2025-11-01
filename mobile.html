@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ScanBridge - Mobile Client</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: white;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      color: #333;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .status.connected {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status.connecting {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .button {
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .button-primary:active {
+      transform: scale(0.98);
+    }
+
+    .button-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .preview-container {
+      margin: 20px 0;
+      display: none;
+    }
+
+    .preview-container.active {
+      display: block;
+    }
+
+    .preview-image {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      margin-bottom: 15px;
+    }
+
+    .info {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📱 ScanBridge</h1>
+      <p>Document Scanner Client</p>
+    </div>
+
+    <div id="status" class="status disconnected">
+      Disconnected
+    </div>
+
+    <button id="connectBtn" class="button button-primary">
+      Connect
+    </button>
+
+    <button id="scanBtn" class="button button-primary hidden" disabled>
+      Scan Document
+    </button>
+
+    <div id="previewContainer" class="preview-container">
+      <img id="previewImage" class="preview-image" alt="Preview">
+      <button id="retryBtn" class="button button-secondary">
+        Take Another Photo
+      </button>
+    </div>
+
+    <div class="info">
+      <p>Scan documents directly from your phone</p>
+      <p style="margin-top: 5px; font-size: 12px;">Tap "Scan Document" when ready</p>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let deviceId = null;
+    let stream = null;
+    let video = null;
+    let token = null;
+
+    // Get token from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    token = urlParams.get('token');
+
+    if (!token) {
+      document.getElementById('status').textContent = 'Error: No token provided';
+      document.getElementById('status').className = 'status disconnected';
+    }
+
+    const statusEl = document.getElementById('status');
+    const connectBtn = document.getElementById('connectBtn');
+    const scanBtn = document.getElementById('scanBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const retryBtn = document.getElementById('retryBtn');
+
+    function updateStatus(text, className) {
+      statusEl.textContent = text;
+      statusEl.className = `status ${className}`;
+    }
+
+    function connectWebSocket() {
+      if (!token) {
+        updateStatus('Error: No token provided', 'disconnected');
+        return;
+      }
+
+      updateStatus('Connecting...', 'connecting');
+      connectBtn.disabled = true;
+
+      // Use secure WebSocket if on HTTPS
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsPort = window.location.protocol === 'https:' ? 3443 : 3000;
+      const wsUrl = `${protocol}//${window.location.hostname}:${wsPort}/ws`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        updateStatus('Connected - Registering...', 'connecting');
+        const deviceName = navigator.userAgentData?.brands?.[0]?.brand ||
+                          navigator.userAgent ||
+                          'Mobile Device';
+
+        ws.send(JSON.stringify({
+          type: 'register',
+          token: token,
+          name: deviceName.substring(0, 50)
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'registered') {
+          deviceId = data.deviceId;
+          updateStatus('Connected ✓', 'connected');
+          connectBtn.classList.add('hidden');
+          scanBtn.classList.remove('hidden');
+          scanBtn.disabled = false;
+        } else if (data.type === 'scan') {
+          startCamera();
+        } else if (data.type === 'scanSuccess') {
+          updateStatus('Scan saved successfully!', 'connected');
+          setTimeout(() => {
+            updateStatus('Connected ✓', 'connected');
+            previewContainer.classList.remove('active');
+            scanBtn.disabled = false;
+          }, 2000);
+        } else if (data.type === 'scanError') {
+          updateStatus('Scan failed. Please try again.', 'connected');
+          scanBtn.disabled = false;
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        updateStatus('Connection error', 'disconnected');
+        connectBtn.disabled = false;
+      };
+
+      ws.onclose = () => {
+        updateStatus('Disconnected', 'disconnected');
+        connectBtn.classList.remove('hidden');
+        scanBtn.classList.add('hidden');
+        connectBtn.disabled = false;
+        deviceId = null;
+
+        // Attempt to reconnect after 3 seconds
+        setTimeout(() => {
+          if (!ws || ws.readyState === WebSocket.CLOSED) {
+            connectWebSocket();
+          }
+        }, 3000);
+      };
+    }
+
+    function startCamera() {
+      scanBtn.disabled = true;
+      updateStatus('Opening camera...', 'connecting');
+
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        updateStatus('Camera API not supported. Please use a modern browser.', 'disconnected');
+        scanBtn.disabled = false;
+        return;
+      }
+
+      // Check if we're on HTTPS (required for camera access on mobile)
+      const isSecureContext = window.isSecureContext ||
+                             window.location.protocol === 'https:' ||
+                             window.location.hostname === 'localhost' ||
+                             window.location.hostname === '127.0.0.1';
+
+      if (!isSecureContext && window.location.protocol !== 'https:') {
+        updateStatus('Camera requires HTTPS. Please reload using HTTPS URL.', 'disconnected');
+        scanBtn.disabled = false;
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment', // Use back camera
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      })
+      .then((mediaStream) => {
+        stream = mediaStream;
+
+        // Create video element
+        if (!video) {
+          video = document.createElement('video');
+          video.setAttribute('autoplay', '');
+          video.setAttribute('playsinline', '');
+          video.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1000; transform: scaleX(-1);';
+          document.body.appendChild(video);
+        }
+
+        video.srcObject = stream;
+
+        // Wait for video to be ready
+        video.onloadedmetadata = () => {
+          updateStatus('Camera ready - Tap screen to capture', 'connected');
+
+          // Capture photo on tap
+          const capturePhoto = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg', 0.92);
+
+            // Stop camera
+            stream.getTracks().forEach(track => track.stop());
+            if (video) {
+              video.remove();
+              video = null;
+            }
+            stream = null;
+
+            // Show preview
+            previewImage.src = imageData;
+            previewContainer.classList.add('active');
+
+            // Send to server
+            updateStatus('Uploading scan...', 'connecting');
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'scanResult',
+                fileName: `scan_${Date.now()}.jpg`,
+                data: imageData
+              }));
+            }
+          };
+
+          // Capture on tap anywhere on video
+          video.addEventListener('click', capturePhoto, { once: true });
+
+          // Also capture on tap anywhere on screen
+          document.addEventListener('click', capturePhoto, { once: true });
+
+          // Auto-capture after 3 seconds if no tap
+          setTimeout(() => {
+            if (video && video.readyState >= 2) {
+              capturePhoto();
+            }
+          }, 3000);
+        };
+      })
+      .catch((error) => {
+        console.error('Camera error:', error);
+        let errorMessage = 'Camera access denied';
+        if (error.name === 'NotAllowedError') {
+          errorMessage = 'Camera permission denied. Please allow camera access in your browser settings.';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = 'No camera found on this device.';
+        } else if (error.name === 'NotReadableError') {
+          errorMessage = 'Camera is already in use by another app.';
+        } else if (error.name === 'SecurityError') {
+          errorMessage = 'Camera access blocked. Please use HTTPS or localhost.';
+        }
+        updateStatus(errorMessage, 'disconnected');
+        scanBtn.disabled = false;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+      });
+    }
+
+    connectBtn.addEventListener('click', connectWebSocket);
+
+    scanBtn.addEventListener('click', () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        startCamera();
+      }
+    });
+
+    retryBtn.addEventListener('click', () => {
+      previewContainer.classList.remove('active');
+      scanBtn.disabled = false;
+    });
+
+    // Auto-connect on load
+    if (token) {
+      setTimeout(connectWebSocket, 500);
+    }
+  </script>
+</body>
+</html>
+

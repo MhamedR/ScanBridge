@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged if configured, otherwise run full checks
+if command -v npx > /dev/null && npx lint-staged --version > /dev/null 2>&1; then
+  echo "📦 Running lint-staged on staged files..."
+  npx lint-staged
+else
+  echo "⚠️  lint-staged not found, running full checks..."
+
+  # Check for linting errors in staged files
+  if git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|html|scss|css)$' | grep -q .; then
+    echo "🔍 Running linter on staged files..."
+    npm run lint --silent || {
+      echo "❌ Linting failed. Please fix the errors before committing."
+      exit 1
+    }
+  fi
+
+  # Quick TypeScript type check (faster than full build)
+  echo "🔨 Checking TypeScript types..."
+  if npx tsc --noEmit --project tsconfig.app.json 2>/dev/null; then
+    echo "✅ TypeScript type check passed"
+  else
+    echo "❌ TypeScript type check failed"
+    exit 1
+  fi
+fi
+
+echo "✅ Pre-commit checks passed!"

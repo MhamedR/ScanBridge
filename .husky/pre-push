@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Run tests before pushing
+if npm run test 2>/dev/null; then
+  echo "✅ All tests passed"
+else
+  echo "❌ Tests failed. Please fix them before pushing."
+  echo "   You can skip this hook with: git push --no-verify"
+  exit 1
+fi
+
+# Build the project to ensure it compiles
+echo "🔨 Building project..."
+if npm run build -- --configuration production 2>/dev/null | grep -q "Build at:"; then
+  echo "✅ Build successful"
+else
+  echo "❌ Build failed. Please fix errors before pushing."
+  echo "   You can skip this hook with: git push --no-verify"
+  exit 1
+fi
+
+echo "✅ Pre-push checks passed!"
+

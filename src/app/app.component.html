@@ -1,0 +1,29 @@
+<div class="app-container h-screen w-screen flex flex-col bg-gray-50">
+  <!-- Header -->
+  <mat-toolbar color="primary" class="shadow-md">
+    <mat-icon class="mr-3">scanner</mat-icon>
+    <span class="text-xl font-bold">{{ title }}</span>
+    <span class="flex-1"></span>
+  </mat-toolbar>
+
+  <!-- Main Content -->
+  <div class="flex-1 p-6 overflow-auto">
+    <div class="max-w-7xl mx-auto">
+      <!-- Top Row: QR Code and Device List -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div [@fadeIn] class="h-full">
+          <app-qr-card></app-qr-card>
+        </div>
+        <div [@slideIn] class="h-full">
+          <app-device-list></app-device-list>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Scan Preview -->
+      <div [@fadeIn] class="grid grid-cols-1">
+        <app-scan-preview></app-scan-preview>
+      </div>
+    </div>
+  </div>
+</div>
+
