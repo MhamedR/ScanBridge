@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -22,10 +23,18 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class AppComponent implements OnInit {
+  private readonly themeService = inject(ThemeService);
+
   title = 'ScanBridge';
+  readonly isDark = this.themeService.isDark;
+  readonly theme = this.themeService.theme;
 
   ngOnInit(): void {
     // Component initialization
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 }
 

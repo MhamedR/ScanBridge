@@ -1,28 +1,46 @@
 <mat-card class="scan-preview-card h-full flex flex-col">
-  <mat-card-header class="flex items-center mb-4">
-    <mat-icon class="mr-2 text-purple-600">image</mat-icon>
-    <mat-card-title class="text-xl font-semibold">Last Scan</mat-card-title>
+  <mat-card-header class="flex items-center mb-4 px-6 pt-6">
+    <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 mr-3">
+      <mat-icon class="text-purple-600 dark:text-purple-400">image</mat-icon>
+    </div>
+    <mat-card-title class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+      Last Scan
+    </mat-card-title>
   </mat-card-header>
 
-  <mat-card-content class="flex-1 flex flex-col items-center justify-center">
+  <mat-card-content class="flex-1 flex flex-col items-center justify-center px-6 pb-6">
     @if (!lastScan()) {
-      <div class="text-center py-8 text-gray-500">
-        <mat-icon class="text-6xl mb-4 opacity-50">insert_photo</mat-icon>
-        <p>No scans yet</p>
-        <p class="text-sm mt-2">Scan a document to see preview here</p>
+      <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div class="p-4 rounded-full bg-gray-100 dark:bg-gray-700/50 inline-flex mb-4">
+          <mat-icon class="text-6xl text-gray-400 dark:text-gray-500">insert_photo</mat-icon>
+        </div>
+        <p class="text-lg font-medium mb-2">No scans yet</p>
+        <p class="text-sm">Scan a document to see preview here</p>
       </div>
     } @else {
       <div class="flex flex-col items-center w-full">
-        <div class="scan-thumbnail mb-4 rounded-lg shadow-lg overflow-hidden bg-gray-100">
-          <div class="w-full h-64 flex items-center justify-center">
-            <mat-icon class="text-6xl text-gray-400">description</mat-icon>
+        <div class="scan-thumbnail mb-6 rounded-xl shadow-lg overflow-hidden w-full">
+          <div class="w-full h-64 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
+            <mat-icon class="text-6xl text-gray-400 dark:text-gray-500">description</mat-icon>
           </div>
         </div>
         <div class="text-center w-full">
-          <p class="font-medium text-gray-900 mb-1 truncate px-4">{{ lastScan()!.fileName }}</p>
-          <p class="text-xs text-gray-500 mb-4">Saved to Desktop</p>
-          <button mat-raised-button color="primary" (click)="openFolder()" class="w-full sm:w-auto">
-            <mat-icon class="mr-1">folder_open</mat-icon>
+          <div class="mb-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+            <p class="font-semibold text-gray-900 dark:text-gray-100 mb-1 truncate px-2 text-lg">
+              {{ lastScan()!.fileName }}
+            </p>
+            <div class="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <mat-icon class="text-base">folder</mat-icon>
+              <span>Saved to Desktop</span>
+            </div>
+          </div>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="openFolder()"
+            class="shadow-md hover:shadow-lg transition-all w-full sm:w-auto px-6"
+          >
+            <mat-icon class="mr-2">folder_open</mat-icon>
             Open Folder
           </button>
         </div>

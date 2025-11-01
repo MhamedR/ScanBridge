@@ -1,9 +1,13 @@
 .scan-preview-card {
-  @apply shadow-lg rounded-lg;
+  @apply shadow-lg rounded-xl bg-white dark:bg-gray-800 transition-all duration-200;
+  @apply border border-gray-200 dark:border-gray-700;
+  @apply hover:shadow-xl hover:shadow-purple-500/10 dark:hover:shadow-purple-500/20;
 }
 
 .scan-thumbnail {
   max-width: 100%;
   max-height: 256px;
+  @apply bg-gray-100 dark:bg-gray-700/50 rounded-xl;
+  @apply border border-gray-200 dark:border-gray-600;
 }
 

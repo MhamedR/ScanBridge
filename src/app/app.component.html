@@ -1,26 +1,38 @@
-<div class="app-container h-screen w-screen flex flex-col bg-gray-50">
+<div class="app-container h-screen w-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
   <!-- Header -->
-  <mat-toolbar color="primary" class="shadow-md">
-    <mat-icon class="mr-3">scanner</mat-icon>
-    <span class="text-xl font-bold">{{ title }}</span>
-    <span class="flex-1"></span>
+  <mat-toolbar color="primary" class="shadow-lg dark:shadow-gray-900/50">
+    <div class="flex items-center w-full">
+      <mat-icon class="mr-3 text-white dark:text-gray-100">scanner</mat-icon>
+      <span class="text-xl font-bold text-white dark:text-gray-100">{{ title }}</span>
+      <span class="flex-1"></span>
+      <!-- Theme Toggle -->
+      <button
+        mat-icon-button
+        (click)="toggleTheme()"
+        [matTooltip]="isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+        class="text-white dark:text-gray-100 hover:bg-white/10 transition-colors"
+        aria-label="Toggle theme"
+      >
+        <mat-icon>@if (isDark()) { light_mode } @else { dark_mode }</mat-icon>
+      </button>
+    </div>
   </mat-toolbar>
 
   <!-- Main Content -->
-  <div class="flex-1 p-6 overflow-auto">
+  <div class="flex-1 p-6 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
     <div class="max-w-7xl mx-auto">
       <!-- Top Row: QR Code and Device List -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div [@fadeIn] class="h-full">
+        <div [@fadeIn] class="h-full transform transition-transform hover:scale-[1.02]">
           <app-qr-card></app-qr-card>
         </div>
-        <div [@slideIn] class="h-full">
+        <div [@slideIn] class="h-full transform transition-transform hover:scale-[1.02]">
           <app-device-list></app-device-list>
         </div>
       </div>
 
       <!-- Bottom Row: Scan Preview -->
-      <div [@fadeIn] class="grid grid-cols-1">
+      <div [@fadeIn] class="grid grid-cols-1 transform transition-transform hover:scale-[1.01]">
         <app-scan-preview></app-scan-preview>
       </div>
     </div>

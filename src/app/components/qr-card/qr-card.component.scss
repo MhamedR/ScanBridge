@@ -1,10 +1,13 @@
 .qr-card {
-  @apply shadow-lg rounded-lg;
+  @apply shadow-lg rounded-xl bg-white dark:bg-gray-800 transition-all duration-200;
+  @apply border border-gray-200 dark:border-gray-700;
+  @apply hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/20;
 }
 
 .qr-image {
   width: 300px;
   height: 300px;
   image-rendering: crisp-edges;
+  @apply rounded-xl shadow-md dark:shadow-gray-900/50;
 }
 

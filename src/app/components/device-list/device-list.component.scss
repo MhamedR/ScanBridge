@@ -1,8 +1,13 @@
 .device-list-card {
-  @apply shadow-lg rounded-lg;
+  @apply shadow-lg rounded-xl bg-white dark:bg-gray-800 transition-all duration-200;
+  @apply border border-gray-200 dark:border-gray-700;
+  @apply hover:shadow-xl hover:shadow-green-500/10 dark:hover:shadow-green-500/20;
 }
 
 .device-item {
-  @apply bg-white;
+  @apply bg-white dark:bg-gray-700/50;
+  @apply border-gray-200 dark:border-gray-600;
+  @apply hover:shadow-lg hover:scale-[1.02] transition-all duration-200;
+  @apply rounded-xl;
 }
 

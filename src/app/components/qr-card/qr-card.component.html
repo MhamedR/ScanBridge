@@ -1,37 +1,51 @@
 <mat-card class="qr-card h-full flex flex-col">
-  <mat-card-header class="flex items-center mb-4">
-    <mat-icon class="mr-2 text-blue-600">qr_code_scanner</mat-icon>
-    <mat-card-title class="text-xl font-semibold">Pair Your Device</mat-card-title>
+  <mat-card-header class="flex items-center mb-4 px-6 pt-6">
+    <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 mr-3">
+      <mat-icon class="text-blue-600 dark:text-blue-400">qr_code_scanner</mat-icon>
+    </div>
+    <mat-card-title class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+      Pair Your Device
+    </mat-card-title>
   </mat-card-header>
 
-  <mat-card-content class="flex-1 flex flex-col items-center justify-center">
+  <mat-card-content class="flex-1 flex flex-col items-center justify-center px-6 pb-6">
     @if (loading()) {
       <div class="flex flex-col items-center">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p class="mt-4 text-gray-600">Generating QR code...</p>
+        <mat-spinner diameter="50" class="text-blue-600"></mat-spinner>
+        <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Generating QR code...</p>
       </div>
     } @else if (error()) {
-      <div class="text-center text-red-600">
-        <mat-icon class="text-4xl mb-2">error</mat-icon>
-        <p>{{ error() }}</p>
-        <button mat-raised-button color="primary" (click)="refreshQRCode()" class="mt-4">
-          <mat-icon>refresh</mat-icon>
+      <div class="text-center">
+        <div class="p-3 rounded-full bg-red-100 dark:bg-red-900/30 inline-flex mb-4">
+          <mat-icon class="text-4xl text-red-600 dark:text-red-400">error</mat-icon>
+        </div>
+        <p class="text-red-600 dark:text-red-400 mb-4 font-medium">{{ error() }}</p>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="refreshQRCode()"
+          class="mt-4 shadow-md hover:shadow-lg transition-shadow"
+        >
+          <mat-icon class="mr-2">refresh</mat-icon>
           Retry
         </button>
       </div>
     } @else if (qrCodeDataUrl() && !loading() && !error()) {
       <div class="flex flex-col items-center">
-        <img [src]="qrCodeDataUrl()" alt="QR Code" class="qr-image mb-4 rounded-lg shadow-lg" />
-        <p class="text-sm text-gray-600 text-center max-w-xs">
+        <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl mb-4 shadow-inner">
+          <img [src]="qrCodeDataUrl()" alt="QR Code" class="qr-image" />
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 text-center max-w-xs font-medium mb-4">
           Scan this QR code with your phone to connect
         </p>
         <button
           mat-icon-button
           (click)="refreshQRCode()"
-          class="mt-2"
+          class="mt-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           matTooltip="Refresh QR Code"
+          aria-label="Refresh QR Code"
         >
-          <mat-icon>refresh</mat-icon>
+          <mat-icon class="text-gray-700 dark:text-gray-300">refresh</mat-icon>
         </button>
       </div>
     }
